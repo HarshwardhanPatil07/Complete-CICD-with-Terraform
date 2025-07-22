@@ -1,2 +1,29 @@
-.idea/*
-.wakatime.config/
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Wakatime config
+.wakatime.config
+
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

@@ -17,8 +17,9 @@ variable jenkins_ip {
   default = "165.232.114.245/32"
 }
 variable instance_type {
-  default = "t2.micro"
+  default = "t3.micro"
 }
 variable region {
   default = "eu-central-1"
 }
+

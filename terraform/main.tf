@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 0.12"
   backend "s3" {
     bucket = "myapp-tf-s3-bucket"
-    key = "myapp/state.tfstate"
+    key    = "myapp/state.tfstate"
     region = "ap-south-1"
   }
 }
@@ -19,10 +19,10 @@ resource "aws_vpc" "myapp-vpc" {
 }
 
 resource "aws_subnet" "myapp-subnet-1" {
-  vpc_id = aws_vpc.myapp-vpc.id
-  cidr_block = var.subnet_cidr_block
+  vpc_id            = aws_vpc.myapp-vpc.id
+  cidr_block        = var.subnet_cidr_block
   availability_zone = var.avail_zone
-    tags = {
+  tags = {
     Name: "${var.env_prefix}-subnet-1"
   }
 }
@@ -50,24 +50,24 @@ resource "aws_default_security_group" "default-sg" {
   vpc_id = aws_vpc.myapp-vpc.id
 
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "TCP"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "TCP"
     cidr_blocks = [var.my_ip, var.jenkins_ip]
   }
 
   ingress {
-    from_port = 8080
-    to_port = 8080
-    protocol = "TCP"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
     prefix_list_ids = []
   }
 
@@ -76,30 +76,38 @@ resource "aws_default_security_group" "default-sg" {
   }
 }
 
-data "aws_ami" "latest-amazon-linux-image" {
+# --- THIS BLOCK IS UPDATED ---
+# It now searches for the official RHEL 9 AMI
+data "aws_ami" "latest-rhel-image" {
   most_recent = true
-  owners = ["amazon"]
+  owners      = ["309956199498"] # Official Red Hat owner ID
+
   filter {
-    name = "name" 
-    values = ["amzn2-ami-kernel-*-x86_64-gp2"]
+    name   = "name"
+    # This filter finds the latest RHEL 9, 64-bit (x86_64), HVM, GP2-backed AMI
+    values = ["RHEL-9.*_HVM-x86_64-*-gp2"]
   }
+
   filter {
-    name = "virtualization-type"
+    name   = "virtualization-type"
     values = ["hvm"]
   }
 }
 
+# --- THIS RESOURCE IS UPDATED ---
 resource "aws_instance" "myapp-server" {
-  ami = data.aws_ami.latest-amazon-linux-image.id
+  # The 'ami' argument now points to the RHEL data source
+  ami           = data.aws_ami.latest-rhel-image.id
   instance_type = var.instance_type
 
-  subnet_id = aws_subnet.myapp-subnet-1.id
+  subnet_id              = aws_subnet.myapp-subnet-1.id
   vpc_security_group_ids = [aws_default_security_group.default-sg.id]
-  availability_zone = var.avail_zone
+  availability_zone      = var.avail_zone
 
   associate_public_ip_address = true
-  key_name = "myapp-key-pair"
+  key_name                    = "myapp-key-pair"
 
+  # This script MUST be the updated one for RHEL that we discussed
   user_data = file("entry-script.sh")
 
   user_data_replace_on_change = true
